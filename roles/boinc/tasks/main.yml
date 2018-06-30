@@ -1,0 +1,55 @@
+---
+
+- name: Add newest boinc
+  apt_repository:
+    repo: ppa:costamagnagianfranco/boinc
+  become: True
+  become_method: sudo
+
+
+- name: Install boinc and addons
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - boinc
+    - boinctui
+  become: True
+  become_method: sudo
+
+- name: Add to grcpool.com
+  command: "boinccmd --acct_mgr attach grcpool.com {{ pooluser }} {{ poolpasswd }}"
+  ignore_errors: True
+
+- name: Sync with grcpool.com
+  command: "boinccmd --acct_mgr sync"
+
+- name: Create yafu dir
+  file:
+    path: "/var/lib/boinc-client/projects/yafu.myfirewall.org_yafu/"
+    state: directory
+    owner: boinc
+    group: boinc
+  become: True
+  become_method: sudo
+
+- name: Create yafu app_config.xml
+  copy:
+    dest: "/var/lib/boinc-client/projects/yafu.myfirewall.org_yafu/app_config.xml"
+    src: "../files/var/lib/boinc-client/projects/yafu.myfirewall.org_yafu/app_config.xml"
+    owner: boinc
+    group: boinc
+  become: True
+  become_method: sudo
+
+- name: Read app_config.xml
+  command: "boinccmd --read_cc_config"
+
+- name: Run always
+  command: "boinccmd --set_run_mode always"
+
+- name: Use network always
+  command: "boinccmd --set_network_mode always"
+
+
+
